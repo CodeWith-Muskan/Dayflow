@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Build output
+dayflow/frontend/dist/
+dist/
+build/
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Misc
+*.tsbuildinfo
+.eslintcache
