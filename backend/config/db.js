@@ -1,10 +1,8 @@
 const mongoose = require("mongoose");
 
-const MONGODB_URI = process.env.MONGO_URI;
-
-if (!MONGODB_URI) {
-  console.error("MONGO_URI is not defined in environment variables");
-}
+// Note: MONGO_URI is read lazily inside connectDB() — not at module load —
+// because locally dotenv.config() populates it after the require chain starts
+// in server.js. On Vercel the platform injects it before any module runs.
 
 // Cache the connection across serverless invocations so we don't reconnect
 // on every request. `global.mongoose` survives warm cycles on Vercel.
@@ -20,6 +18,12 @@ mongoose.connection.on("disconnected", () => {
 });
 
 const connectDB = async () => {
+  const MONGODB_URI = process.env.MONGO_URI;
+
+  if (!MONGODB_URI) {
+    console.error("MONGO_URI is not defined in environment variables");
+  }
+
   // Reuse the connection only if it is genuinely still alive.
   if (cached.conn && mongoose.connection.readyState === 1) {
     return cached.conn;

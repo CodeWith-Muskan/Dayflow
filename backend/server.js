@@ -1,6 +1,10 @@
+const dotenv = require("dotenv");
+
+// Load env before anything else so modules requiring DB/secret config see it.
+dotenv.config();
+
 const express = require("express");
 const cors = require("cors");
-const dotenv = require("dotenv");
 
 const connectDB = require("./config/db");
 const Task = require("./models/Task");
@@ -12,8 +16,6 @@ const categoryRoutes = require("./routes/categoryRoutes");
 const scheduleRoutes = require("./routes/scheduleRoutes");
 const goalRoutes = require("./routes/goalRoutes");
 const analyticsRoutes = require("./routes/analyticsRoutes");
-
-dotenv.config();
 
 const app = express();
 
