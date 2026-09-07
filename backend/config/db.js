@@ -1,14 +1,23 @@
 const mongoose = require("mongoose");
 
-const connectDB = async () => {
-  try {
-    const connection = await mongoose.connect(process.env.MONGO_URI);
+let connected = false;
 
-    console.log(`MongoDB Connected: ${connection.connection.host}`);
+const connectDB = async () => {
+  if (connected && mongoose.connection.readyState === 1) return;
+
+  try {
+    await mongoose.connect(process.env.MONGO_URI, {
+      bufferCommands: true,
+      serverSelectionTimeoutMS: 10000,
+    });
+    connected = true;
+    console.log(`MongoDB Connected: ${mongoose.connection.host}`);
   } catch (error) {
+    // Do not exit the process (serverless functions must not call
+    // process.exit). Mongoose will buffer commands while disconnected.
     console.error("MongoDB connection failed:", error.message);
-    process.exit(1);
   }
 };
 
 module.exports = connectDB;
+module.exports.connected = () => connected;

@@ -18,7 +18,6 @@ dotenv.config();
 const app = express();
 
 connectDB();
-
 app.use(cors());
 app.use(express.json());
 
@@ -35,19 +34,25 @@ app.use("/api/schedules", scheduleRoutes);
 app.use("/api/goals", goalRoutes);
 app.use("/api/analytics", analyticsRoutes);
 
-const PORT = process.env.PORT || 5000;
+module.exports = app;
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Only `app.listen` when this file is run directly (local dev), not when
+// imported as a serverless function by Vercel.
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
 
-  // Backfill dateKey for legacy tasks (idempotent).
-  backfillDateKeys(Task)
-    .then((count) => {
-      if (count > 0) {
-        console.log(`Backfilled dateKey for ${count} legacy tasks.`);
-      }
-    })
-    .catch((err) => {
-      console.error("Failed to backfill dateKey:", err.message);
-    });
-});
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+
+    // Backfill dateKey for legacy tasks (idempotent).
+    backfillDateKeys(Task)
+      .then((count) => {
+        if (count > 0) {
+          console.log(`Backfilled dateKey for ${count} legacy tasks.`);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to backfill dateKey:", err.message);
+      });
+  });
+}
