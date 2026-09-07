@@ -6,25 +6,31 @@ if (!MONGODB_URI) {
   console.error("MONGO_URI is not defined in environment variables");
 }
 
-// Cache the connection across warm serverless invocations so we don't
-// re-connect on every request. `global.mongoose` survives cold/warm cycles
-// on Vercel.
+// Cache the connection across serverless invocations so we don't reconnect
+// on every request. `global.mongoose` survives warm cycles on Vercel.
 let cached = global.mongoose;
 if (!cached) {
   cached = global.mongoose = { conn: null, promise: null };
 }
 
+// If the socket drops between invocations, drop the cached connection so the
+// next request reconnects.
+mongoose.connection.on("disconnected", () => {
+  cached.conn = null;
+});
+
 const connectDB = async () => {
-  if (cached.conn) {
+  // Reuse the connection only if it is genuinely still alive.
+  if (cached.conn && mongoose.connection.readyState === 1) {
     return cached.conn;
   }
 
   if (!cached.promise) {
     cached.promise = mongoose
       .connect(MONGODB_URI, {
-        bufferCommands: false,
-        serverSelectionTimeoutMS: 8000,
-        maxPoolSize: 1,
+        bufferCommands: true,
+        bufferTimeoutMS: 15000,
+        serverSelectionTimeoutMS: 10000,
       })
       .then((mongooseInstance) => {
         console.log(`MongoDB Connected: ${mongooseInstance.connection.host}`);
@@ -38,6 +44,7 @@ const connectDB = async () => {
   }
 
   cached.conn = await cached.promise;
+  cached.promise = null;
   return cached.conn;
 };
 
