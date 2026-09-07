@@ -17,7 +17,9 @@ dotenv.config();
 
 const app = express();
 
-connectDB();
+// Kick off the DB connection (finished/awaited by the serverless entry in
+// api/index.js, or awaited by app.listen for local dev).
+connectDB().catch(() => {});
 app.use(cors());
 app.use(express.json());
 
