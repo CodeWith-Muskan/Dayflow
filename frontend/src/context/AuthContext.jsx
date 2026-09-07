@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState } from "react";
 import * as authService from "../services/authService";
+import { clearApiCache } from "../services/api";
 
 const AuthContext = createContext();
 
@@ -50,6 +51,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    clearApiCache();
 
     setUser(null);
   };
