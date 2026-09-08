@@ -2561,6 +2561,193 @@ body,
 }
 
 /* ============================================================
+   DAY VIEW TOGGLE (List / Timeline)
+   ============================================================ */
+
+.day-view-toggle {
+  display: inline-flex;
+  gap: 2px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px;
+  margin-bottom: 16px;
+}
+
+.day-view-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.day-view-option:hover {
+  color: var(--accent-strong);
+}
+
+.day-view-option.active {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 2px 8px var(--accent-soft);
+}
+
+/* ============================================================
+   INTERACTIVE TIMELINE
+   ============================================================ */
+
+.interactive-timeline {
+  position: relative;
+  overflow-y: auto;
+  max-height: 560px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-soft);
+  cursor: crosshair;
+  user-select: none;
+  touch-action: none;
+}
+
+.day-panel-large .interactive-timeline {
+  max-height: 640px;
+}
+
+.interactive-timeline.read-only {
+  cursor: default;
+}
+
+.interactive-timeline-inner {
+  position: relative;
+  width: 100%;
+}
+
+.interactive-timeline-hour {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: flex-start;
+  border-bottom: 1px solid var(--border);
+}
+
+.interactive-timeline-hour-label {
+  position: sticky;
+  z-index: 2;
+  width: 58px;
+  padding: 6px 8px 0 0;
+  text-align: right;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: var(--surface-soft);
+  color: var(--text-faint);
+}
+
+.interactive-timeline-hour-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+  opacity: 0.6;
+}
+
+.timeline-block-bar {
+  position: absolute;
+  left: 64px;
+  right: 10px;
+  z-index: 3;
+  overflow: hidden;
+  border-radius: 9px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+}
+
+.timeline-block-bar-inner {
+  padding: 5px 8px;
+  height: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.timeline-block-bar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.timeline-block-bar-time {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--accent-strong);
+}
+
+.timeline-block-bar-actions {
+  display: inline-flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.timeline-block-bar-actions .task-action {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+}
+
+.timeline-block-bar-title {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.25;
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.timeline-block-bar .category-tag,
+.timeline-block-bar .repeat-chip {
+  display: inline-flex;
+  margin-top: 3px;
+  padding: 1px 7px;
+  font-size: 10px;
+}
+
+.interactive-timeline-selection {
+  position: absolute;
+  left: 64px;
+  right: 10px;
+  z-index: 4;
+  background: var(--accent);
+  opacity: 0.35;
+  border: 1px solid var(--accent-strong);
+  border-radius: 9px;
+  pointer-events: none;
+}
+
+.interactive-timeline-selection-label {
+  position: absolute;
+  top: 4px;
+  left: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-strong);
+  background: var(--surface-soft);
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  padding: 2px 6px;
+  white-space: nowrap;
+}
+
+/* ============================================================
    PLAN SUMMARY STRIP
    ============================================================ */
 

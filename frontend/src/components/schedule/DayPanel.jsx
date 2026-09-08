@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import { Clock, ExternalLink, Lock, Trash2 } from "lucide-react";
+import { Clock, ExternalLink, List, Lock, Trash2 } from "lucide-react";
 
 import Modal from "../common/Modal";
 import ScheduleForm from "./ScheduleForm";
 import DailyTimeline from "./DailyTimeline";
+import InteractiveTimeline from "./InteractiveTimeline";
 
 import {
   getSchedules,
@@ -35,6 +36,9 @@ const DayPanel = ({
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [viewMode, setViewMode] = useState("list");
+  const [presetStart, setPresetStart] = useState(null);
+  const [presetEnd, setPresetEnd] = useState(null);
 
   const readOnly = isPastKey(date);
 
@@ -105,6 +109,15 @@ const DayPanel = ({
 
   const openForm = (item = null) => {
     setEditing(item);
+    setPresetStart(null);
+    setPresetEnd(null);
+    setFormOpen(true);
+  };
+
+  const openFormForRange = (startTime, endTime) => {
+    setEditing(null);
+    setPresetStart(startTime);
+    setPresetEnd(endTime);
     setFormOpen(true);
   };
 
@@ -133,22 +146,58 @@ const DayPanel = ({
         </button>
       </div>
 
-      <DailyTimeline
-        date={date}
-        items={items}
-        loading={loading}
-        error={error}
-        onRetry={() => setRefreshKey((key) => key + 1)}
-        onAdd={() => openForm(null)}
-        onEdit={(item) => openForm(item)}
-        onDelete={(item) => setConfirmDelete(item)}
-      />
+      <div className="day-view-toggle" role="tablist" aria-label="Day plan view">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={viewMode === "list"}
+          className={`day-view-option ${viewMode === "list" ? "active" : ""}`}
+          onClick={() => setViewMode("list")}
+        >
+          <List size={14} />
+          List
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={viewMode === "timeline"}
+          className={`day-view-option ${viewMode === "timeline" ? "active" : ""}`}
+          onClick={() => setViewMode("timeline")}
+        >
+          <Clock size={14} />
+          Timeline
+        </button>
+      </div>
+
+      {viewMode === "timeline" ? (
+        <InteractiveTimeline
+          date={date}
+          items={items}
+          readOnly={readOnly}
+          onEdit={(item) => openForm(item)}
+          onDelete={(item) => setConfirmDelete(item)}
+          onCreate={openFormForRange}
+        />
+      ) : (
+        <DailyTimeline
+          date={date}
+          items={items}
+          loading={loading}
+          error={error}
+          onRetry={() => setRefreshKey((key) => key + 1)}
+          onAdd={() => openForm(null)}
+          onEdit={(item) => openForm(item)}
+          onDelete={(item) => setConfirmDelete(item)}
+        />
+      )}
 
       <ScheduleForm
         open={formOpen}
         onClose={() => setFormOpen(false)}
         mode={editing ? "edit" : "create"}
         item={editing}
+        presetStart={presetStart}
+        presetEnd={presetEnd}
         categories={categories}
         onSubmit={editing ? handleUpdate : handleCreate}
         onOpenCategoryCreator={onOpenCategoryCreator}

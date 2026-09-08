@@ -28,6 +28,8 @@ const ScheduleForm = ({
   onClose,
   mode = "create",
   item = null,
+  presetStart = null,
+  presetEnd = null,
   categories = [],
   onSubmit,
   onOpenCategoryCreator,
@@ -49,8 +51,8 @@ const ScheduleForm = ({
 
     setTitle(item?.title || "");
     setDescription(item?.description || "");
-    setStartTime(item?.startTime || "09:00");
-    setEndTime(item?.endTime || "");
+    setStartTime(item?.startTime || presetStart || "09:00");
+    setEndTime(item?.endTime || (mode === "create" ? presetEnd || "" : ""));
     setCategory(item?.category?._id || "");
     setRepeatType(item?.recurrence?.type || "none");
     setRepeatDays(item?.recurrence?.daysOfWeek?.length
@@ -58,7 +60,7 @@ const ScheduleForm = ({
       : [1, 3, 5]);
     setRepeatEndDate(item?.recurrence?.endDate || "");
     setError("");
-  }, [open, item]);
+  }, [open, item, presetStart, presetEnd, mode]);
 
   const toggleRepeatDay = (day) => {
     setRepeatDays((previous) =>
