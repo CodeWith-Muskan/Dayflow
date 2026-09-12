@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Area,
-  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
@@ -130,10 +128,10 @@ const Analytics = () => {
 
   const dayCount = rangeDays(startDate, endDate);
   const isLongRange = dayCount > 31;
-  const [chartMode, setChartMode] = useState(isLongRange ? "area" : "bar");
+  const [chartMode, setChartMode] = useState(isLongRange ? "rate" : "bar");
 
   useEffect(() => {
-    setChartMode(isLongRange ? "area" : "bar");
+    setChartMode(isLongRange ? "rate" : "bar");
   }, [isLongRange]);
 
   const hintClick = (dateKey) => navigate(`/tasks?date=${dateKey}`);
@@ -159,28 +157,37 @@ const Analytics = () => {
     });
   }, [startDate, dayCount, rangeData]);
 
-  const comparisonChart = useMemo(() => {
-    if (!compare || !comparisonStart) return [];
-    return Array.from({ length: dayCount }, (_, index) => {
-      const dateKey = addDays(comparisonStart, index);
-      const entry = compareData.find((item) => item.date === dateKey);
-      return entry?.productivity ?? null;
+  const rateSeries = useMemo(() => {
+    const seriesMap = {};
+    rangeData.forEach((row) => {
+      seriesMap[row.date] = row;
     });
-  }, [compare, comparisonStart, dayCount, compareData]);
-
-  const movingAverage = useMemo(() => {
-    const windowSize = Math.min(7, dayCount);
-    return mainChart.map((point, index) => {
-      const startIdx = Math.max(0, index - windowSize + 1);
-      const slice = mainChart.slice(startIdx, index + 1);
-      const avg = slice.reduce((sum, p) => sum + (p.productivity || 0), 0) / slice.length;
+    return mainChart.map((point) => {
+      const row = seriesMap[point.dateKey] || {};
       return {
-        ...point,
-        average: Math.round(avg),
-        previous: comparisonChart[index] ?? null,
+        dateKey: point.dateKey,
+        label: point.label,
+        productivity: row.productivity ?? 0,
       };
     });
-  }, [mainChart, dayCount, comparisonChart]);
+  }, [rangeData, mainChart]);
+
+  const comparisonRateSeries = useMemo(() => {
+    if (!compare || !comparisonStart) return [];
+    const seriesMap = {};
+    compareData.forEach((row) => {
+      seriesMap[row.date] = row;
+    });
+    return mainChart.map((point) => {
+      const dateKey = addDays(comparisonStart, mainChart.indexOf(point));
+      const row = seriesMap[dateKey] || {};
+      return {
+        dateKey,
+        label: point.label,
+        productivity: row.productivity ?? 0,
+      };
+    });
+  }, [compare, comparisonStart, compareData, mainChart]);
 
   const categorySeries = useMemo(() => {
     const { categories: metas, series } = categoryOverTime;
@@ -364,8 +371,8 @@ const Analytics = () => {
                 </button>
                 <button
                   type="button"
-                  className={chartMode === "area" ? "active" : ""}
-                  onClick={() => setChartMode("area")}
+                  className={chartMode === "rate" ? "active" : ""}
+                  onClick={() => setChartMode("rate")}
                 >
                   Rate
                 </button>
@@ -392,30 +399,25 @@ const Analytics = () => {
                     />
                   </BarChart>
                 ) : (
-                  <AreaChart data={movingAverage} margin={{ top: 8, right: 8, left: -16, bottom: 0 }} onClick={(state) => chartClick(state, movingAverage)}>
-                    <defs>
-                      <linearGradient id="rangeGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={accentColor} stopOpacity={0.3} />
-                        <stop offset="100%" stopColor={accentColor} stopOpacity={0.02} />
-                      </linearGradient>
-                    </defs>
+                  <LineChart data={rateSeries} margin={{ top: 8, right: 8, left: -16, bottom: 0 }} onClick={(state) => chartClick(state, rateSeries)}>
                     <CartesianGrid vertical={false} stroke={gridStroke} />
                     <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: tickFill, fontSize: 12 }} interval={Math.max(0, Math.floor(dayCount / 10) - 1)} />
                     <YAxis tickLine={false} axisLine={false} tick={{ fill: tickFill, fontSize: 12 }} domain={[0, 100]} />
                     <Tooltip cursor={{ stroke: accentColor }} contentStyle={tooltipTheme} />
                     {compare && (
-                      <Area
+                      <Line
                         type="monotone"
-                        dataKey="previous"
+                        data={comparisonRateSeries}
+                        dataKey="productivity"
                         name="Previous"
                         stroke={compareColor}
                         strokeWidth={1.5}
                         strokeDasharray="5 4"
-                        fill="transparent"
+                        dot={false}
                       />
                     )}
-                    <Area type="monotone" dataKey="average" name="Daily completion %" stroke={accentColor} strokeWidth={2} fill="url(#rangeGradient)" />
-                  </AreaChart>
+                    <Line type="monotone" dataKey="productivity" name="Daily completion %" stroke={accentColor} strokeWidth={2} dot={false} />
+                  </LineChart>
                 )}
               </ResponsiveContainer>
             </div>
